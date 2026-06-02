@@ -242,12 +242,19 @@ button:hover{opacity:.85}
   user-select:none;
   pointer-events:none;
 }
+  .login-logo{
+  width:120px;
+  height:auto;
+  margin:15px auto 20px auto;
+  display:block;
+}
 </style>
 </head>
 
 <body>
 
   <audio id="panicSound" src="panic.mp3"></audio>
+  <img src="logo.png" class="login-logo">
 
   <div class="footer-credit">
   By SkyTrax
@@ -257,6 +264,8 @@ button:hover{opacity:.85}
   <div class="center-page">
     <div class="login-box">
       <h1>Connexion MDT</h1>
+      <img src="logo.png" class="login-logo">
+      <input id="loginMatricule" placeholder="Matricule">
       <input id="loginMatricule" placeholder="Matricule">
       <input id="loginPassword" type="password" placeholder="Mot de passe">
       <br>
