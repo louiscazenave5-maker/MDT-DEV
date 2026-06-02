@@ -192,6 +192,29 @@ button:hover{opacity:.85}
   line-height:1.2;
 }
 
+
+.panic-popup{
+  position:fixed;
+  top:25px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#dc2626;
+  color:white;
+  padding:25px 35px;
+  border-radius:14px;
+  font-size:22px;
+  font-weight:bold;
+  z-index:9999;
+  box-shadow:0 0 25px rgba(220,38,38,.8);
+  text-align:center;
+  animation:panicBlink .6s infinite alternate;
+}
+
+@keyframes panicBlink{
+  from{opacity:1}
+  to{opacity:.65}
+}
+
 .footer-credit{
   position:fixed;
   bottom:10px;
@@ -206,6 +229,8 @@ button:hover{opacity:.85}
 </head>
 
 <body>
+
+  <audio id="panicSound" src="panic.mp3"></audio>
 
   <div class="footer-credit">
   By SkyTrax
@@ -261,6 +286,7 @@ button:hover{opacity:.85}
     <p id="welcome"></p>
     <button id="serviceBtn" onclick="toggleService()">Prendre son service</button>
     <button onclick="createUnit()">Créer une unité</button>
+    <button class="red" onclick="triggerPanic()">PANIC BUTTON</button>
     <button class="red" onclick="logout()">Déconnexion</button>
   </div>
 
@@ -728,6 +754,61 @@ async function dropOfficer(event, unitId){
   await loadData();
   renderBoard();
 }
+
+function showPanicPopup(alertData){
+  const oldPopup = document.getElementById("panicPopup");
+  if(oldPopup) oldPopup.remove();
+
+  const popup = document.createElement("div");
+  popup.id = "panicPopup";
+  popup.className = "panic-popup";
+
+  popup.innerText =
+    `${alertData.matricule} | ${alertData.prenom} ${alertData.nom} a déclenché le PANIC BUTTON`;
+
+  document.body.appendChild(popup);
+
+  setTimeout(() => {
+    if(popup) popup.remove();
+  }, 10000);
+}
+
+async function triggerPanic(){
+  if(!currentUser){
+    alert("Tu dois être connecté.");
+    return;
+  }
+
+  const sound = document.getElementById("panicSound");
+  sound.currentTime = 0;
+  sound.play();
+
+  const panicData = {
+    matricule: currentUser.matricule,
+    nom: currentUser.nom,
+    prenom: currentUser.prenom
+  };
+
+  showPanicPopup(panicData);
+
+  await db.from("panic_alerts").insert(panicData);
+}
+
+  const panicData = {
+    matricule: currentUser.matricule,
+    nom: currentUser.nom,
+    prenom: currentUser.prenom
+  };
+
+  showPanicPopup(panicData);
+
+  const { error } = await db.from("panic_alerts").insert(panicData);
+
+  if(error){
+    alert("Erreur panic button : " + error.message);
+  }
+}
+
 function logout(){
   currentUser = null;
   showPage("loginPage");
@@ -750,6 +831,13 @@ db.channel("mdt-sync")
 
     if(document.getElementById("mdtPage").classList.contains("active")) renderBoard();
     if(document.getElementById("adminPage").classList.contains("active")) renderAdmin();
+  })
+  .subscribe();
+
+
+db.channel("panic-sync")
+  .on("postgres_changes", { event:"INSERT", schema:"public", table:"panic_alerts" }, payload => {
+    showPanicPopup(payload.new);
   })
   .subscribe();
 
