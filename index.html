@@ -306,11 +306,11 @@ button:hover{opacity:.85}
 
 <div id="mdtPage" class="page">
   <div class="topbar">
-    <h1></h1>
+    <h1>MDT LSPD</h1>
     <p id="welcome"></p>
     <button id="serviceBtn" onclick="toggleService()">Prendre son service</button>
     <button onclick="createUnit()">Créer une unité</button>
-    <button class="panic-btn" onclick="triggerPanic()">PANIC BUTTON</button>
+    <button class="panic-btn" onclick="triggerPanic()">Panic Button</button>
     <button class="red" onclick="logout()">Déconnexion</button>
   </div>
 
@@ -788,7 +788,7 @@ function showPanicPopup(alertData){
   popup.className = "panic-popup";
 
   popup.innerText =
-    `${alertData.matricule} | ${alertData.prenom} ${alertData.nom} a déclenché le PANIC BUTTON`;
+    `${alertData.matricule} | ${alertData.prenom} ${alertData.nom} a déclenché le Panic Button`;
 
   document.body.appendChild(popup);
 
