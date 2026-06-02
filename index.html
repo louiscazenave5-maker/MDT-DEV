@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>MDT LSPD</title>
+
+<style>
+body{
+  margin:0;
+  background:#0f172a;
+  color:white;
+  font-family:Arial,sans-serif;
+}
+
+.page{display:none}
+.page.active{display:block}
+
+.center-page{
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.login-box{
+  background:#1e293b;
+  padding:35px;
+  border-radius:18px;
+  width:360px;
+  text-align:center;
+}
+
+.login-box input{width:90%}
+
+input,button,select{
+  padding:12px;
+  margin:6px;
+  border-radius:8px;
+  border:none;
+}
+
+button{
+  background:#2563eb;
+  color:white;
+  cursor:pointer;
+}
+
+button:hover{opacity:.85}
+
+.red{background:#dc2626}
+.green{background:#16a34a}
+
+.topbar{
+  padding:20px;
+  background:#111827;
+}
+
+.board{
+  display:flex;
+  flex-wrap:wrap;
+  gap:15px;
+  padding:20px;
+  overflow-x:hidden;
+  align-items:flex-start;
+}
+
+.column{
+  background:#1e293b;
+  width:300px;
+  min-height:250px;
+  padding:15px;
+  border-radius:12px;
+}
+
+.available-column{
+  background:#111827;
+  border:2px dashed #2563eb;
+}
+
+.card{
+  background:#334155;
+  padding:12px;
+  border-radius:10px;
+  margin:10px;
+}
+
+.officer{
+  background:#334155;
+  padding:8px 10px;
+  border-radius:8px;
+  margin:6px 0;
+  cursor:grab;
+  font-size:13px;
+}
+
+.patrol-card{
+  background:#334155;
+  padding:12px;
+  border-radius:10px;
+  margin:10px 0;
+  cursor:grab;
+}
+
+.unit-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
+}
+
+.unit-title{
+  cursor:pointer;
+  user-select:none;
+  margin:0;
+}
+
+.unit-actions{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.unit-status-select{
+  background:#2563eb;
+  color:white;
+  font-weight:bold;
+  padding:6px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  width:auto;
+}
+
+.delete-unit-btn{
+  background:#dc2626;
+  padding:6px 9px;
+  border-radius:8px;
+  font-size:12px;
+}
+
+.edit-unit-btn{
+  background:#475569;
+  padding:6px 9px;
+  border-radius:8px;
+  font-size:12px;
+}
+
+.unit-info{
+  margin:4px 0 12px 0;
+}
+
+.radio-badge{
+  display:inline-block;
+  background:#8b4a4a;
+  color:white;
+  font-size:11px;
+  font-weight:bold;
+  padding:3px 7px;
+  border-radius:4px;
+  margin-bottom:5px;
+  line-height:1.2;
+}
+
+.weapon-container{
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+  margin-top:2px;
+  margin-bottom:8px;
+}
+
+.weapon-badge{
+  display:inline-block;
+  background:#8a7a3b;
+  color:white;
+  font-size:11px;
+  font-weight:bold;
+  padding:3px 7px;
+  border-radius:4px;
+  line-height:1.2;
+}
+
+.vehicle-badge{
+  display:inline-block;
+  background:#2e7d32;
+  color:white;
+  font-size:11px;
+  font-weight:bold;
+  padding:3px 7px;
+  border-radius:4px;
+  margin-bottom:5px;
+  line-height:1.2;
+}
+
+.footer-credit{
+  position:fixed;
+  bottom:10px;
+  left:50%;
+  transform:translateX(-50%);
+  color:rgba(255,255,255,0.25);
+  font-size:12px;
+  user-select:none;
+  pointer-events:none;
+}
+</style>
+</head>
+
+<body>
+
+  <div class="footer-credit">
+  By SkyTrax
+</div>
+
+<div id="loginPage" class="page active">
+  <div class="center-page">
+    <div class="login-box">
+      <h1>Connexion MDT</h1>
+      <input id="loginMatricule" placeholder="Matricule">
+      <input id="loginPassword" type="password" placeholder="Mot de passe">
+      <br>
+      <button onclick="login()">Connexion</button>
+      <button onclick="showPage('registerPage')">Créer un compte</button>
+    </div>
+  </div>
+</div>
+
+<div id="registerPage" class="page">
+  <div class="center-page">
+    <div class="login-box">
+      <h1>Créer un compte</h1>
+      <input id="regNom" placeholder="Nom">
+      <input id="regPrenom" placeholder="Prénom">
+      <input id="regMatricule" placeholder="Matricule">
+      <input id="regDiscordId" placeholder="ID Discord">
+      <input id="regPassword" type="password" placeholder="Mot de passe">
+      <br>
+      <button onclick="createAccount()">Créer le compte</button>
+      <button onclick="showPage('loginPage')">Retour</button>
+    </div>
+  </div>
+</div>
+
+<div id="adminPage" class="page">
+  <div class="topbar">
+    <h1>Panel Admin</h1>
+    <button class="red" onclick="logout()">Déconnexion</button>
+  </div>
+
+  <div style="padding:20px">
+    <h2>Comptes en attente</h2>
+    <div id="pendingList"></div>
+
+    <h2>Tous les comptes</h2>
+    <div id="allUsersList"></div>
+  </div>
+</div>
+
+<div id="mdtPage" class="page">
+  <div class="topbar">
+    <h1>MDT LSPD</h1>
+    <p id="welcome"></p>
+    <button id="serviceBtn" onclick="toggleService()">Prendre son service</button>
+    <button onclick="createUnit()">Créer une unité</button>
+    <button class="red" onclick="logout()">Déconnexion</button>
+  </div>
+
+  <div class="board" id="board"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+
+<script>
+const SUPABASE_URL = "https://ytdpmoscnhoqcjhmpmue.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Me-K3HVx2w6ZwQUeLbeY8w_qGA5Cm72";
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const DEFAULT_USERS = [
+  {
+    nom:"Williams",
+    prenom:"Javier",
+    matricule:"97",
+    discordId:"123456789012345678",
+    password:"Fortnite34",
+    accepted:true,
+    admin:false,
+    service:false,
+    unit:"available"
+  },
+  {
+    nom:"Admin",
+    prenom:"MDT",
+    matricule:"admin",
+    discordId:"000000000000000000",
+    password:"admin123",
+    accepted:true,
+    admin:true,
+    service:false,
+    unit:"available"
+  }
+];
+
+let users = [];
+let units = [];
+let currentUser = null;
+
+async function loadData(){
+  const usersRes = await db.from("users").select("*").order("id", { ascending:true });
+  const unitsRes = await db.from("units").select("*");
+
+  if(usersRes.error){
+    alert("Erreur chargement comptes : " + usersRes.error.message);
+    return;
+  }
+
+  if(unitsRes.error){
+    alert("Erreur chargement unités : " + unitsRes.error.message);
+    return;
+  }
+
+  users = usersRes.data || [];
+  units = unitsRes.data || [];
+}
+
+async function saveData(){
+  // Avec Supabase, chaque action sauvegarde directement dans la base.
+}
+
+function showPage(pageId){
+  document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
+  document.getElementById(pageId).classList.add("active");
+}
+
+async function createAccount(){
+  const nom = document.getElementById("regNom").value.trim();
+  const prenom = document.getElementById("regPrenom").value.trim();
+  const matricule = document.getElementById("regMatricule").value.trim();
+  const discordId = document.getElementById("regDiscordId").value.trim();
+  const password = document.getElementById("regPassword").value.trim();
+
+  if(!nom || !prenom || !matricule || !discordId || !password){
+    alert("Remplis tous les champs.");
+    return;
+  }
+
+  await loadData();
+
+  if(users.find(u => u.matricule === matricule)){
+    alert("Ce matricule existe déjà.");
+    return;
+  }
+
+  if(users.find(u => u.discord_id === discordId)){
+    alert("Cet ID Discord est déjà utilisé.");
+    return;
+  }
+
+  const { error } = await db.from("users").insert({
+    nom,
+    prenom,
+    matricule,
+    discord_id: discordId,
+    password,
+    accepted:false,
+    admin:false,
+    service:false,
+    unit:"available"
+  });
+
+  if(error){
+    alert("Erreur création compte : " + error.message);
+    return;
+  }
+
+  alert("Compte créé. Il doit être accepté par un admin.");
+  showPage("loginPage");
+}
+async function login(){
+  await loadData();
+
+  const matricule = document.getElementById("loginMatricule").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
+
+  const user = users.find(u => u.matricule === matricule && u.password === password);
+
+  if(!user){
+    alert("Matricule ou mot de passe incorrect.");
+    return;
+  }
+
+  if(!user.accepted){
+    alert("Ton compte n'a pas encore été accepté.");
+    return;
+  }
+
+  currentUser = user;
+
+  if(user.admin){
+    renderAdmin();
+    showPage("adminPage");
+  } else {
+    document.getElementById("welcome").innerText =
+      `Bienvenue ${user.matricule} | ${user.prenom} ${user.nom}`;
+
+    document.getElementById("serviceBtn").innerText =
+      currentUser.service ? "Terminer son service" : "Prendre son service";
+
+    renderBoard();
+    showPage("mdtPage");
+  }
+}
+
+function renderAdmin(){
+  const pendingList = document.getElementById("pendingList");
+  const allUsersList = document.getElementById("allUsersList");
+
+  pendingList.innerHTML = "";
+  allUsersList.innerHTML = "";
+
+  const pending = users.filter(u => !u.accepted);
+
+  if(pending.length === 0){
+    pendingList.innerHTML = "<p>Aucun compte en attente.</p>";
+  } else {
+    pending.forEach(user => {
+      const div = document.createElement("div");
+      div.className = "card";
+
+      div.innerHTML = `
+        <strong>${user.matricule} | ${user.prenom} ${user.nom}</strong><br>
+        ID Discord : ${user.discord_id || "Non renseigné"}<br><br>
+        <button class="green" onclick="acceptUser('${user.matricule}')">Accepter</button>
+        <button class="red" onclick="deleteUser('${user.matricule}')">Refuser</button>
+      `;
+
+      pendingList.appendChild(div);
+    });
+  }
+
+  users.forEach(user => {
+    const div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <strong>${user.matricule} | ${user.prenom} ${user.nom}</strong><br>
+      ID Discord : ${user.discord_id || "Non renseigné"}<br>
+      Admin : ${user.admin ? "Oui" : "Non"}<br>
+      Accepté : ${user.accepted ? "Oui" : "Non"}<br><br>
+
+      ${user.admin ? "" : `
+        <button class="red" onclick="deleteAccount('${user.matricule}')">Supprimer</button>
+      `}
+    `;
+
+    allUsersList.appendChild(div);
+  });
+}
+
+async function acceptUser(matricule){
+  const { error } = await db.from("users")
+    .update({ accepted:true })
+    .eq("matricule", matricule);
+
+  if(error){
+    alert("Erreur acceptation : " + error.message);
+    return;
+  }
+
+  await loadData();
+  renderAdmin();
+}
+async function deleteUser(matricule){
+  const { error } = await db.from("users").delete().eq("matricule", matricule);
+
+  if(error){
+    alert("Erreur suppression : " + error.message);
+    return;
+  }
+
+  await loadData();
+  renderAdmin();
+}
+async function deleteAccount(matricule){
+  const user = users.find(u => u.matricule === matricule);
+
+  if(!user) return;
+
+  if(!confirm("Supprimer " + user.prenom + " " + user.nom + " ?")) return;
+
+  const { error } = await db.from("users").delete().eq("matricule", matricule);
+
+  if(error){
+    alert("Erreur suppression : " + error.message);
+    return;
+  }
+
+  await loadData();
+  renderAdmin();
+}
+async function toggleService(){
+  currentUser.service = !currentUser.service;
+
+  const updateData = currentUser.service
+    ? { service:true, unit:"available" }
+    : { service:false, unit:null };
+
+  const { error } = await db.from("users")
+    .update(updateData)
+    .eq("matricule", currentUser.matricule);
+
+  if(error){
+    alert("Erreur service : " + error.message);
+    return;
+  }
+
+  await loadData();
+  currentUser = users.find(u => u.matricule === currentUser.matricule);
+
+  document.getElementById("serviceBtn").innerText =
+    currentUser.service ? "Terminer son service" : "Prendre son service";
+
+  renderBoard();
+}
+async function createUnit(){
+  const name = prompt("Nom de l'unité :");
+  if(!name) return;
+
+  const radio = prompt("Fréquence radio :", "Fréquence 1") || "";
+  const vehicle = prompt("Véhicule :", "Scout") || "";
+  const weapon = prompt("Armements séparés par des virgules :", "Arme de poing") || "";
+
+  const { error } = await db.from("units").insert({
+    id:"unit_" + Date.now(),
+    name:name,
+    status:"10-8",
+    radio:radio,
+    vehicle:vehicle,
+    weapon:weapon
+  });
+
+  if(error){
+    alert("Erreur création unité : " + error.message);
+    return;
+  }
+
+  await loadData();
+  renderBoard();
+}
+async function changeUnitStatus(unitId, status){
+  const { error } = await db.from("units")
+    .update({ status })
+    .eq("id", unitId);
+
+  if(error){
+    alert("Erreur statut : " + error.message);
+    return;
+  }
+
+  await loadData();
+  renderBoard();
+}
+async function editUnitInfo(unitId){
+  const unit = units.find(u => u.id === unitId);
+  if(!unit) return;
+
+  const name = prompt("Nom de la patrouille :", unit.name || "");
+  if(name === null) return;
+
+  const radio = prompt("Fréquence radio :", unit.radio || "");
+  if(radio === null) return;
+
+  const vehicle = prompt("Véhicule :", unit.vehicle || "");
+  if(vehicle === null) return;
+
+  const weapon = prompt("Armements séparés par des virgules :", unit.weapon || "");
+  if(weapon === null) return;
+
+  const { error } = await db.from("units")
+    .update({
+      name: name,
+      radio: radio,
+      vehicle: vehicle,
+      weapon: weapon
+    })
+    .eq("id", unitId);
+
+  if(error){
+    alert("Erreur modification unité : " + error.message);
+    return;
+  }
+
+  await loadData();
+  renderBoard();
+}
+async function deleteUnitButton(unitId){
+  const unit = units.find(u => u.id === unitId);
+
+  if(!unit) return;
+
+  if(!confirm("Supprimer l'unité " + unit.name + " ?")) return;
+
+  await db.from("users").update({ unit:"available" }).eq("unit", unitId);
+
+  const { error } = await db.from("units").delete().eq("id", unitId);
+
+  if(error){
+    alert("Erreur suppression unité : " + error.message);
+    return;
+  }
+
+  await loadData();
+  renderBoard();
+}
+function renderBoard(){
+  const board = document.getElementById("board");
+
+  board.innerHTML = `
+    <div class="column available-column" ondragover="allowDrop(event)" ondrop="dropOfficer(event,'available')">
+      <h2>Effectifs non assignés</h2>
+      <div id="available"></div>
+    </div>
+  `;
+
+  units.forEach(unit => {
+    const weaponsHtml = (unit.weapon || "")
+      .split(",")
+      .filter(w => w.trim() !== "")
+      .map(w => `<span class="weapon-badge">${w.trim()}</span>`)
+      .join("");
+
+    const column = document.createElement("div");
+    column.className = "column";
+    column.setAttribute("ondragover", "allowDrop(event)");
+    column.setAttribute("ondrop", `dropOfficer(event,'${unit.id}')`);
+
+    column.innerHTML = `
+      <div class="unit-header">
+        <h2 class="unit-title">${unit.name}</h2>
+
+        <div class="unit-actions">
+          <select class="unit-status-select" onchange="changeUnitStatus('${unit.id}', this.value)">
+            <option ${unit.status==="10-6" ? "selected" : ""}>10-6</option>
+            <option ${unit.status==="10-7" ? "selected" : ""}>10-7</option>
+            <option ${unit.status==="10-14" ? "selected" : ""}>10-14</option>
+            <option ${unit.status==="10-15" ? "selected" : ""}>10-15</option>
+            <option ${unit.status==="10-17" ? "selected" : ""}>10-17</option>
+            <option ${unit.status==="10-23" ? "selected" : ""}>10-23</option>
+            <option ${unit.status==="10-31" ? "selected" : ""}>10-31</option>
+            <option ${unit.status==="10-35" ? "selected" : ""}>10-35</option>
+            <option ${unit.status==="10-37" ? "selected" : ""}>10-37</option>
+            <option ${unit.status==="10-38" ? "selected" : ""}>10-38</option>
+            <option ${unit.status==="10-40" ? "selected" : ""}>10-40</option>
+            <option ${unit.status==="10-50" ? "selected" : ""}>10-50</option>
+            <option ${unit.status==="10-51" ? "selected" : ""}>10-51</option>
+            <option ${unit.status==="10-52" ? "selected" : ""}>10-52</option>
+            <option ${unit.status==="10-56" ? "selected" : ""}>10-56</option>
+            <option ${unit.status==="10-59" ? "selected" : ""}>10-59</option>
+            <option ${unit.status==="10-60" ? "selected" : ""}>10-60</option>
+            <option ${unit.status==="10-91" ? "selected" : ""}>10-91</option>
+            <option ${unit.status==="10-92" ? "selected" : ""}>10-92</option>
+            <option ${unit.status==="10-97" ? "selected" : ""}>10-97</option>
+            <option ${unit.status==="10-98" ? "selected" : ""}>10-98</option>
+            <option ${unit.status==="10-99" ? "selected" : ""}>10-99</option>
+
+          </select>
+
+          <button class="edit-unit-btn" onclick="editUnitInfo('${unit.id}')">✎</button>
+          <button class="delete-unit-btn" onclick="deleteUnitButton('${unit.id}')">✕</button>
+        </div>
+      </div>
+
+      <div class="unit-info">
+        <div class="radio-badge">${unit.radio || "Aucune fréquence"}</div>
+        <div class="vehicle-badge">${unit.vehicle || "Aucun véhicule"}</div>
+
+        <div class="weapon-container">
+          ${weaponsHtml || `<span class="weapon-badge">Aucun armement</span>`}
+        </div>
+      </div>
+
+      <div id="${unit.id}"></div>
+    `;
+
+    board.appendChild(column);
+  });
+
+  users.filter(u => u.service).forEach(user => {
+    const card = document.createElement("div");
+    card.draggable = true;
+
+    card.ondragstart = function(event){
+      event.dataTransfer.setData("matricule", user.matricule);
+    };
+
+    card.className = user.unit === "available" ? "officer" : "patrol-card";
+
+    card.innerHTML = `
+      <strong>${user.matricule} | ${user.prenom} ${user.nom}</strong>
+    `;
+
+    const container = document.getElementById(user.unit || "available");
+
+    if(container){
+      container.appendChild(card);
+    }
+  });
+}
+
+function allowDrop(event){
+  event.preventDefault();
+}
+
+async function dropOfficer(event, unitId){
+  event.preventDefault();
+
+  const matricule = event.dataTransfer.getData("matricule");
+
+  const { error } = await db.from("users")
+    .update({ unit:unitId })
+    .eq("matricule", matricule);
+
+  if(error){
+    alert("Erreur déplacement : " + error.message);
+    return;
+  }
+
+  await loadData();
+  renderBoard();
+}
+function logout(){
+  currentUser = null;
+  showPage("loginPage");
+}
+
+db.channel("mdt-sync")
+  .on("postgres_changes", { event:"*", schema:"public", table:"users" }, async () => {
+    await loadData();
+
+    if(currentUser){
+      const updatedUser = users.find(u => u.matricule === currentUser.matricule);
+      if(updatedUser) currentUser = updatedUser;
+
+      if(document.getElementById("mdtPage").classList.contains("active")) renderBoard();
+      if(document.getElementById("adminPage").classList.contains("active")) renderAdmin();
+    }
+  })
+  .on("postgres_changes", { event:"*", schema:"public", table:"units" }, async () => {
+    await loadData();
+
+    if(document.getElementById("mdtPage").classList.contains("active")) renderBoard();
+    if(document.getElementById("adminPage").classList.contains("active")) renderAdmin();
+  })
+  .subscribe();
+
+loadData();
+
+</script>
+
+</body>
+</html>
