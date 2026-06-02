@@ -444,7 +444,7 @@ async function login(){
     showPage("adminPage");
   } else {
     document.getElementById("welcome").innerText =
-      `Bienvenue ${user.matricule} | ${user.prenom} ${user.nom}`;
+      `**Bienvenue ${user.matricule} | ${user.prenom} ${user.nom}**`;
 
     document.getElementById("serviceBtn").innerText =
       currentUser.service ? "Terminer son service" : "Prendre son service";
