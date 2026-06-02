@@ -791,17 +791,6 @@ async function triggerPanic(){
 
   showPanicPopup(panicData);
 
-  await db.from("panic_alerts").insert(panicData);
-}
-
-  const panicData = {
-    matricule: currentUser.matricule,
-    nom: currentUser.nom,
-    prenom: currentUser.prenom
-  };
-
-  showPanicPopup(panicData);
-
   const { error } = await db.from("panic_alerts").insert(panicData);
 
   if(error){
