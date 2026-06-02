@@ -242,12 +242,30 @@ button:hover{opacity:.85}
   user-select:none;
   pointer-events:none;
 }
-  .login-logo{
+.login-logo{
   width:180px;
   height:auto;
   margin:15px auto 20px auto;
   display:block;
 }
+
+.title-block{
+  display:flex;
+  flex-direction:column;
+  margin-right:auto;
+}
+
+.title-block h1{
+  margin:0;
+}
+
+#welcome{
+  margin:0;
+  font-size:18px;
+  font-weight:600;
+}
+
+</style>
 </style>
 </head>
 
@@ -306,13 +324,18 @@ button:hover{opacity:.85}
 
 <div id="mdtPage" class="page">
   <div class="topbar">
-    <h1>MDT LSPD</h1>
-    <p id="welcome"></p>
+
+    <div class="title-block">
+        <h1>MDT LSPD</h1>
+        <p id="welcome"></p>
+    </div>
+
     <button id="serviceBtn" onclick="toggleService()">Prendre son service</button>
     <button onclick="createUnit()">Créer une unité</button>
-    <button class="panic-btn" onclick="triggerPanic()">Panic Button</button>
+    <button class="panic-btn" onclick="triggerPanic()">PANIC BUTTON</button>
     <button class="red" onclick="logout()">Déconnexion</button>
-  </div>
+
+</div>
 
   <div class="board" id="board"></div>
 </div>
